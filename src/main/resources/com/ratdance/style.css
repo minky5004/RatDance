@@ -35,3 +35,41 @@
 #close-button:hover {
     -fx-text-fill: #FF5555;
 }
+
+/* Large time display */
+#time-display {
+    -fx-font-family: "Courier New";
+    -fx-font-size: 52px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #EAEAF5;
+    -fx-effect: dropshadow(gaussian, rgba(130, 110, 255, 0.65), 14, 0.3, 0, 0);
+}
+
+/* Colon separators in countdown input */
+#colon-label {
+    -fx-text-fill: rgba(200, 190, 255, 0.8);
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+/* Mode toggle buttons */
+.toggle-button {
+    -fx-background-color: rgba(255, 255, 255, 0.07);
+    -fx-text-fill: #AAAACC;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+    -fx-min-width: 100;
+    -fx-pref-height: 30;
+    -fx-font-size: 12px;
+}
+.toggle-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.14);
+    -fx-text-fill: #CCCCEE;
+}
+.toggle-button:selected {
+    -fx-background-color: rgba(110, 90, 240, 0.60);
+    -fx-text-fill: white;
+}
+.toggle-button:selected:hover {
+    -fx-background-color: rgba(130, 110, 255, 0.72);
+}
