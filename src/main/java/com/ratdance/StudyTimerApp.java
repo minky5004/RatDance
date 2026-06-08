@@ -1,5 +1,7 @@
 package com.ratdance;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -11,14 +13,26 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Duration;
+
+import java.io.File;
+import java.util.List;
+import java.util.prefs.Preferences;
 
 public class StudyTimerApp {
 
@@ -72,6 +86,7 @@ public class StudyTimerApp {
     }
 
     private javafx.scene.layout.Pane buildScene() {
+        // Character display area (GIF fills this ImageView)
         characterView = new ImageView();
         characterView.setPreserveRatio(true);
         characterView.setFitWidth(320);
@@ -79,11 +94,13 @@ public class StudyTimerApp {
         characterView.setId("character-view");
         setupWindowDrag(characterView);
 
+        // Title bar (for dragging)
         HBox titleBar = new HBox();
         titleBar.setId("title-bar");
         titleBar.setPrefHeight(15);
         setupWindowDrag(titleBar);
 
+        // Mode toggle
         ToggleGroup modeGroup = new ToggleGroup();
         ToggleButton stopwatchToggle = new ToggleButton("타이머");
         ToggleButton countdownToggle = new ToggleButton("카운트다운");
@@ -96,10 +113,12 @@ public class StudyTimerApp {
         HBox modeToggle = new HBox(8, stopwatchToggle, countdownToggle);
         modeToggle.setAlignment(Pos.CENTER);
 
+        // Time display
         timeLabel = new Label("00:00");
         timeLabel.setId("time-display");
         setupWindowDrag(timeLabel);
 
+        // Countdown H:M:S input
         hoursField = createTimeField("0");
         minutesField = createTimeField("0");
         secondsField = createTimeField("0");
@@ -114,6 +133,7 @@ public class StudyTimerApp {
         countdownInputBox.setVisible(false);
         countdownInputBox.setManaged(false);
 
+        // Control buttons with icons
         startPauseButton = new Button("▶");
         startPauseButton.setId("play-button");
         startPauseButton.getStyleClass().add("control-button");
@@ -130,6 +150,7 @@ public class StudyTimerApp {
         HBox controls = new HBox(12, startPauseButton, resetButton);
         controls.setAlignment(Pos.CENTER);
 
+        // Control panel (transparent, sits to the right of the character)
         VBox controlPanel = new VBox(4, titleBar, modeToggle, timeLabel, countdownInputBox, controls);
         controlPanel.setId("control-panel");
         controlPanel.setAlignment(Pos.TOP_CENTER);
@@ -137,13 +158,16 @@ public class StudyTimerApp {
         controlPanel.setPrefWidth(150);
         controlPanel.setStyle("-fx-background-color: transparent;");
 
+        // Spacer to push panel down
         VBox spacer = new VBox();
         spacer.setStyle("-fx-background-color: transparent;");
 
+        // Wrapper to position panel at bottom
         VBox panelWrapper = new VBox(spacer, controlPanel);
         VBox.setVgrow(spacer, Priority.ALWAYS);
         panelWrapper.setStyle("-fx-background-color: transparent;");
 
+        // Root: GIF on left, panel on right
         HBox root = new HBox(0, characterView, panelWrapper);
         root.setAlignment(Pos.TOP_LEFT);
         root.setStyle("-fx-background-color: transparent;");
@@ -172,6 +196,7 @@ public class StudyTimerApp {
         });
     }
 
+
     private void switchMode(TimerMode newMode) {
         resetTimer();
         mode = newMode;
@@ -182,7 +207,7 @@ public class StudyTimerApp {
     }
 
     private void buildTimeline() {
-        timeline = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), e -> {
+        timeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             if (mode == TimerMode.STOPWATCH) {
                 elapsedSeconds++;
                 timeLabel.setText(formatTime(elapsedSeconds));
@@ -192,12 +217,12 @@ public class StudyTimerApp {
                 if (remainingSeconds <= 0) {
                     timeline.stop();
                     isRunning = false;
-                    startPauseButton.setText("▶");
+                    startPauseButton.setText("Start");
                     onCountdownComplete();
                 }
             }
         }));
-        timeline.setCycleCount(javafx.animation.Timeline.INDEFINITE);
+        timeline.setCycleCount(Timeline.INDEFINITE);
     }
 
     private void startTimer() {
@@ -230,14 +255,6 @@ public class StudyTimerApp {
         startPauseButton.setStyle("-fx-text-fill: #4CAF50;");
     }
 
-    private String formatTime(int totalSeconds) {
-        int h = totalSeconds / 3600;
-        int m = (totalSeconds % 3600) / 60;
-        int s = totalSeconds % 60;
-        if (h > 0) return String.format("%d:%02d:%02d", h, m, s);
-        else       return String.format("%02d:%02d", m, s);
-    }
-
     private int parseCountdownInput() {
         try {
             int h = Integer.parseInt(hoursField.getText().isEmpty() ? "0" : hoursField.getText());
@@ -248,14 +265,15 @@ public class StudyTimerApp {
             return 0;
         }
     }
-    private void onCountdownComplete() {
-        String originalStyle = timeLabel.getStyle();
-        timeLabel.setStyle("-fx-text-fill: #FF4444;");
-        javafx.animation.PauseTransition flash = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(2));
-        flash.setOnFinished(e -> timeLabel.setStyle(originalStyle));
-        flash.play();
-        java.awt.Toolkit.getDefaultToolkit().beep();
+
+    private String formatTime(int totalSeconds) {
+        int h = totalSeconds / 3600;
+        int m = (totalSeconds % 3600) / 60;
+        int s = totalSeconds % 60;
+        if (h > 0) return String.format("%d:%02d:%02d", h, m, s);
+        else       return String.format("%02d:%02d", m, s);
     }
+
     private void loadGifFile() {
         File gif = new File("characters/mouse_dance.gif");
         if (gif.exists()) {
@@ -263,7 +281,7 @@ public class StudyTimerApp {
             return;
         }
 
-        String savedPath = java.util.prefs.Preferences.userNodeForPackage(StudyTimerApp.class)
+        String savedPath = Preferences.userNodeForPackage(StudyTimerApp.class)
                                       .get("lastGifPath", null);
         if (savedPath != null) {
             File savedFile = new File(savedPath);
@@ -279,9 +297,9 @@ public class StudyTimerApp {
 
     private void initCharacter(File gifFile) {
         try {
-            javafx.scene.image.Image image = new javafx.scene.image.Image(gifFile.toURI().toString());
+            Image image = new Image(gifFile.toURI().toString());
             characterView.setImage(image);
-            java.util.prefs.Preferences.userNodeForPackage(StudyTimerApp.class)
+            Preferences.userNodeForPackage(StudyTimerApp.class)
                        .put("lastGifPath", gifFile.getAbsolutePath());
         } catch (Exception ex) {
             System.err.println("GIF load failed: " + ex.getMessage());
@@ -289,11 +307,20 @@ public class StudyTimerApp {
     }
 
     private File showFileChooserDialog() {
-        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        FileChooser fc = new FileChooser();
         fc.setTitle("GIF 캐릭터 선택");
         fc.getExtensionFilters().add(
-            new javafx.stage.FileChooser.ExtensionFilter("GIF 파일", "*.gif")
+            new FileChooser.ExtensionFilter("GIF 파일", "*.gif")
         );
         return fc.showOpenDialog(stage);
+    }
+
+    private void onCountdownComplete() {
+        String originalStyle = timeLabel.getStyle();
+        timeLabel.setStyle("-fx-text-fill: #FF4444;");
+        PauseTransition flash = new PauseTransition(Duration.seconds(2));
+        flash.setOnFinished(e -> timeLabel.setStyle(originalStyle));
+        flash.play();
+        java.awt.Toolkit.getDefaultToolkit().beep();
     }
 }
