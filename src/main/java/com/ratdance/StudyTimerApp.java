@@ -13,6 +13,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.DragEvent;
@@ -93,6 +95,7 @@ public class StudyTimerApp {
         characterView.setFitHeight(350);
         characterView.setId("character-view");
         setupWindowDrag(characterView);
+        setupCharacterContextMenu(characterView);
 
         // Title bar (for dragging)
         HBox titleBar = new HBox();
@@ -185,6 +188,18 @@ public class StudyTimerApp {
         return field;
     }
 
+    private void setupCharacterContextMenu(ImageView view) {
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem changeGif = new MenuItem("🎨 GIF 변경");
+        changeGif.setOnAction(e -> {
+            File chosen = showFileChooserDialog();
+            if (chosen != null) initCharacter(chosen);
+        });
+        contextMenu.getItems().add(changeGif);
+        view.setOnContextMenuRequested(e ->
+            contextMenu.show(view, e.getScreenX(), e.getScreenY()));
+    }
+
     private void setupWindowDrag(javafx.scene.Node node) {
         node.setOnMousePressed(e -> {
             dragOffsetX = e.getScreenX() - stage.getX();
@@ -275,8 +290,9 @@ public class StudyTimerApp {
     }
 
     private void loadGifFile() {
-        File gif = new File("characters/mouse_dance.gif");
-        if (gif.exists()) {
+        // JAR 위치 기준 및 현재 작업 디렉토리 기준 두 경로 모두 탐색
+        File gif = resolveDefaultGif();
+        if (gif != null) {
             initCharacter(gif);
             return;
         }
@@ -290,9 +306,22 @@ public class StudyTimerApp {
                 return;
             }
         }
+    }
 
-        File chosen = showFileChooserDialog();
-        if (chosen != null) initCharacter(chosen);
+    private File resolveDefaultGif() {
+        // 1순위: 현재 작업 디렉토리 기준
+        File cwd = new File("characters/mouse_dance.gif");
+        if (cwd.exists()) return cwd;
+
+        // 2순위: JAR/클래스 파일 위치 기준
+        try {
+            File jarDir = new File(StudyTimerApp.class.getProtectionDomain()
+                    .getCodeSource().getLocation().toURI()).getParentFile();
+            File jarRelative = new File(jarDir, "characters/mouse_dance.gif");
+            if (jarRelative.exists()) return jarRelative;
+        } catch (Exception ignored) {}
+
+        return null;
     }
 
     private void initCharacter(File gifFile) {
