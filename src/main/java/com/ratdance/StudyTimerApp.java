@@ -172,7 +172,14 @@ public class StudyTimerApp {
         });
     }
 
-    private void switchMode(TimerMode newMode) {}
+    private void switchMode(TimerMode newMode) {
+        resetTimer();
+        mode = newMode;
+        boolean isCountdown = (newMode == TimerMode.COUNTDOWN);
+        countdownInputBox.setVisible(isCountdown);
+        countdownInputBox.setManaged(isCountdown);
+        timeLabel.setText(formatTime(0));
+    }
 
     private void buildTimeline() {
         timeline = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), e -> {
@@ -231,7 +238,16 @@ public class StudyTimerApp {
         else       return String.format("%02d:%02d", m, s);
     }
 
-    private int parseCountdownInput() { return 0; }
+    private int parseCountdownInput() {
+        try {
+            int h = Integer.parseInt(hoursField.getText().isEmpty() ? "0" : hoursField.getText());
+            int m = Integer.parseInt(minutesField.getText().isEmpty() ? "0" : minutesField.getText());
+            int s = Integer.parseInt(secondsField.getText().isEmpty() ? "0" : secondsField.getText());
+            return h * 3600 + m * 60 + s;
+        } catch (NumberFormatException ex) {
+            return 0;
+        }
+    }
     private void onCountdownComplete() {}
     private void loadGifFile() {}
 }
