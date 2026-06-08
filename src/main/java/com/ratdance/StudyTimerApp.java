@@ -249,5 +249,44 @@ public class StudyTimerApp {
         }
     }
     private void onCountdownComplete() {}
-    private void loadGifFile() {}
+    private void loadGifFile() {
+        File gif = new File("characters/mouse_dance.gif");
+        if (gif.exists()) {
+            initCharacter(gif);
+            return;
+        }
+
+        String savedPath = java.util.prefs.Preferences.userNodeForPackage(StudyTimerApp.class)
+                                      .get("lastGifPath", null);
+        if (savedPath != null) {
+            File savedFile = new File(savedPath);
+            if (savedFile.exists()) {
+                initCharacter(savedFile);
+                return;
+            }
+        }
+
+        File chosen = showFileChooserDialog();
+        if (chosen != null) initCharacter(chosen);
+    }
+
+    private void initCharacter(File gifFile) {
+        try {
+            javafx.scene.image.Image image = new javafx.scene.image.Image(gifFile.toURI().toString());
+            characterView.setImage(image);
+            java.util.prefs.Preferences.userNodeForPackage(StudyTimerApp.class)
+                       .put("lastGifPath", gifFile.getAbsolutePath());
+        } catch (Exception ex) {
+            System.err.println("GIF load failed: " + ex.getMessage());
+        }
+    }
+
+    private File showFileChooserDialog() {
+        javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+        fc.setTitle("GIF 캐릭터 선택");
+        fc.getExtensionFilters().add(
+            new javafx.stage.FileChooser.ExtensionFilter("GIF 파일", "*.gif")
+        );
+        return fc.showOpenDialog(stage);
+    }
 }
