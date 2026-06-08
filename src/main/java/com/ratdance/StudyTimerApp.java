@@ -275,8 +275,9 @@ public class StudyTimerApp {
     }
 
     private void loadGifFile() {
-        File gif = new File("characters/mouse_dance.gif");
-        if (gif.exists()) {
+        // JAR 위치 기준 및 현재 작업 디렉토리 기준 두 경로 모두 탐색
+        File gif = resolveDefaultGif();
+        if (gif != null) {
             initCharacter(gif);
             return;
         }
@@ -290,9 +291,22 @@ public class StudyTimerApp {
                 return;
             }
         }
+    }
 
-        File chosen = showFileChooserDialog();
-        if (chosen != null) initCharacter(chosen);
+    private File resolveDefaultGif() {
+        // 1순위: 현재 작업 디렉토리 기준
+        File cwd = new File("characters/mouse_dance.gif");
+        if (cwd.exists()) return cwd;
+
+        // 2순위: JAR/클래스 파일 위치 기준
+        try {
+            File jarDir = new File(StudyTimerApp.class.getProtectionDomain()
+                    .getCodeSource().getLocation().toURI()).getParentFile();
+            File jarRelative = new File(jarDir, "characters/mouse_dance.gif");
+            if (jarRelative.exists()) return jarRelative;
+        } catch (Exception ignored) {}
+
+        return null;
     }
 
     private void initCharacter(File gifFile) {
