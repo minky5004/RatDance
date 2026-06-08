@@ -248,7 +248,14 @@ public class StudyTimerApp {
             return 0;
         }
     }
-    private void onCountdownComplete() {}
+    private void onCountdownComplete() {
+        String originalStyle = timeLabel.getStyle();
+        timeLabel.setStyle("-fx-text-fill: #FF4444;");
+        javafx.animation.PauseTransition flash = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(2));
+        flash.setOnFinished(e -> timeLabel.setStyle(originalStyle));
+        flash.play();
+        java.awt.Toolkit.getDefaultToolkit().beep();
+    }
     private void loadGifFile() {
         File gif = new File("characters/mouse_dance.gif");
         if (gif.exists()) {
