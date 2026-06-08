@@ -31,6 +31,6 @@ Thumbs.db
 .env.local
 .env.*.local
 
-# Application specific
-characters/
-*.gif
+# Application specific — 사용자 GIF는 제외, 기본 캐릭터만 포함
+characters/*
+!characters/mouse_dance.gif
