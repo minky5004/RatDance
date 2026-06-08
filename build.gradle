@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+}
+
+group = 'com.ratdance'
+version = '1.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(23)
+    }
+}
+
+application {
+    mainClass = 'com.ratdance.Main'
+}
+
+javafx {
+    version = '21'
+    modules = ['javafx.controls']
+}
+
+repositories {
+    mavenCentral()
+}
+
+run {
+    workingDir = projectDir
+}

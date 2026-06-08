@@ -1,0 +1,36 @@
+# IDE
+.idea/
+.vscode/
+.claude/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+
+# Build
+build/
+.gradle/
+out/
+dist/
+*.jar
+*.war
+
+# Compiler
+*.class
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Application specific
+characters/
+*.gif
