@@ -2,13 +2,20 @@ package com.ratdance;
 
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -64,7 +71,111 @@ public class StudyTimerApp {
         loadGifFile();
     }
 
-    private javafx.scene.layout.Pane buildScene() { return new HBox(); }
+    private javafx.scene.layout.Pane buildScene() {
+        characterView = new ImageView();
+        characterView.setPreserveRatio(true);
+        characterView.setFitWidth(320);
+        characterView.setFitHeight(350);
+        characterView.setId("character-view");
+        setupWindowDrag(characterView);
+
+        HBox titleBar = new HBox();
+        titleBar.setId("title-bar");
+        titleBar.setPrefHeight(15);
+        setupWindowDrag(titleBar);
+
+        ToggleGroup modeGroup = new ToggleGroup();
+        ToggleButton stopwatchToggle = new ToggleButton("타이머");
+        ToggleButton countdownToggle = new ToggleButton("카운트다운");
+        stopwatchToggle.setToggleGroup(modeGroup);
+        countdownToggle.setToggleGroup(modeGroup);
+        stopwatchToggle.setSelected(true);
+        stopwatchToggle.setOnAction(e -> switchMode(TimerMode.STOPWATCH));
+        countdownToggle.setOnAction(e -> switchMode(TimerMode.COUNTDOWN));
+
+        HBox modeToggle = new HBox(8, stopwatchToggle, countdownToggle);
+        modeToggle.setAlignment(Pos.CENTER);
+
+        timeLabel = new Label("00:00");
+        timeLabel.setId("time-display");
+        setupWindowDrag(timeLabel);
+
+        hoursField = createTimeField("0");
+        minutesField = createTimeField("0");
+        secondsField = createTimeField("0");
+
+        Label colon1 = new Label(":");
+        colon1.setId("colon-label");
+        Label colon2 = new Label(":");
+        colon2.setId("colon-label");
+
+        countdownInputBox = new HBox(6, hoursField, colon1, minutesField, colon2, secondsField);
+        countdownInputBox.setAlignment(Pos.CENTER);
+        countdownInputBox.setVisible(false);
+        countdownInputBox.setManaged(false);
+
+        startPauseButton = new Button("▶");
+        startPauseButton.setId("play-button");
+        startPauseButton.getStyleClass().add("control-button");
+        startPauseButton.setOnAction(e -> {
+            if (isRunning) pauseTimer();
+            else startTimer();
+        });
+
+        Button resetButton = new Button("⏹");
+        resetButton.setId("stop-button");
+        resetButton.getStyleClass().add("control-button");
+        resetButton.setOnAction(e -> resetTimer());
+
+        HBox controls = new HBox(12, startPauseButton, resetButton);
+        controls.setAlignment(Pos.CENTER);
+
+        VBox controlPanel = new VBox(4, titleBar, modeToggle, timeLabel, countdownInputBox, controls);
+        controlPanel.setId("control-panel");
+        controlPanel.setAlignment(Pos.TOP_CENTER);
+        controlPanel.setPadding(new Insets(6, 8, 8, 8));
+        controlPanel.setPrefWidth(150);
+        controlPanel.setStyle("-fx-background-color: transparent;");
+
+        VBox spacer = new VBox();
+        spacer.setStyle("-fx-background-color: transparent;");
+
+        VBox panelWrapper = new VBox(spacer, controlPanel);
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+        panelWrapper.setStyle("-fx-background-color: transparent;");
+
+        HBox root = new HBox(0, characterView, panelWrapper);
+        root.setAlignment(Pos.TOP_LEFT);
+        root.setStyle("-fx-background-color: transparent;");
+
+        return root;
+    }
+
+    private TextField createTimeField(String defaultVal) {
+        TextField field = new TextField(defaultVal);
+        field.getStyleClass().add("time-field");
+        field.setPrefWidth(50);
+        field.setAlignment(Pos.CENTER);
+        field.setTextFormatter(new TextFormatter<>(c ->
+            c.getControlNewText().matches("\\d{0,2}") ? c : null));
+        return field;
+    }
+
+    private void setupWindowDrag(javafx.scene.Node node) {
+        node.setOnMousePressed(e -> {
+            dragOffsetX = e.getScreenX() - stage.getX();
+            dragOffsetY = e.getScreenY() - stage.getY();
+        });
+        node.setOnMouseDragged(e -> {
+            stage.setX(e.getScreenX() - dragOffsetX);
+            stage.setY(e.getScreenY() - dragOffsetY);
+        });
+    }
+
+    private void switchMode(TimerMode newMode) {}
     private void buildTimeline() {}
+    private void startTimer() {}
+    private void pauseTimer() {}
+    private void resetTimer() {}
     private void loadGifFile() {}
 }
