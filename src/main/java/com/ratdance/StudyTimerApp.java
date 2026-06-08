@@ -232,7 +232,8 @@ public class StudyTimerApp {
                 if (remainingSeconds <= 0) {
                     timeline.stop();
                     isRunning = false;
-                    startPauseButton.setText("Start");
+                    startPauseButton.setText("▶");
+                    startPauseButton.setStyle("-fx-text-fill: #4CAF50;");
                     onCountdownComplete();
                 }
             }
