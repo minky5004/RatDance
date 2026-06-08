@@ -173,9 +173,65 @@ public class StudyTimerApp {
     }
 
     private void switchMode(TimerMode newMode) {}
-    private void buildTimeline() {}
-    private void startTimer() {}
-    private void pauseTimer() {}
-    private void resetTimer() {}
+
+    private void buildTimeline() {
+        timeline = new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), e -> {
+            if (mode == TimerMode.STOPWATCH) {
+                elapsedSeconds++;
+                timeLabel.setText(formatTime(elapsedSeconds));
+            } else {
+                remainingSeconds--;
+                timeLabel.setText(formatTime(Math.max(0, remainingSeconds)));
+                if (remainingSeconds <= 0) {
+                    timeline.stop();
+                    isRunning = false;
+                    startPauseButton.setText("▶");
+                    onCountdownComplete();
+                }
+            }
+        }));
+        timeline.setCycleCount(javafx.animation.Timeline.INDEFINITE);
+    }
+
+    private void startTimer() {
+        if (mode == TimerMode.COUNTDOWN && !isRunning) {
+            targetSeconds = parseCountdownInput();
+            if (targetSeconds <= 0) return;
+            remainingSeconds = targetSeconds;
+            timeLabel.setText(formatTime(remainingSeconds));
+        }
+        timeline.play();
+        isRunning = true;
+        startPauseButton.setText("⏸");
+        startPauseButton.setStyle("-fx-text-fill: white;");
+    }
+
+    private void pauseTimer() {
+        timeline.pause();
+        isRunning = false;
+        startPauseButton.setText("⏸");
+        startPauseButton.setStyle("-fx-text-fill: white;");
+    }
+
+    private void resetTimer() {
+        timeline.stop();
+        isRunning = false;
+        elapsedSeconds = 0;
+        remainingSeconds = targetSeconds;
+        timeLabel.setText(formatTime(mode == TimerMode.STOPWATCH ? 0 : targetSeconds));
+        startPauseButton.setText("▶");
+        startPauseButton.setStyle("-fx-text-fill: #4CAF50;");
+    }
+
+    private String formatTime(int totalSeconds) {
+        int h = totalSeconds / 3600;
+        int m = (totalSeconds % 3600) / 60;
+        int s = totalSeconds % 60;
+        if (h > 0) return String.format("%d:%02d:%02d", h, m, s);
+        else       return String.format("%02d:%02d", m, s);
+    }
+
+    private int parseCountdownInput() { return 0; }
+    private void onCountdownComplete() {}
     private void loadGifFile() {}
 }
