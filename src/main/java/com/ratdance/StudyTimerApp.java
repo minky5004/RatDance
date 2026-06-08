@@ -256,8 +256,8 @@ public class StudyTimerApp {
     private void pauseTimer() {
         timeline.pause();
         isRunning = false;
-        startPauseButton.setText("⏸");
-        startPauseButton.setStyle("-fx-text-fill: white;");
+        startPauseButton.setText("▶");
+        startPauseButton.setStyle("-fx-text-fill: #4CAF50;");
     }
 
     private void resetTimer() {
